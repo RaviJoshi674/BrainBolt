@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  username     String    @unique @db.VarChar(50)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  userState          UserState?
+  answerLogs         AnswerLog[]
+  leaderboardScore   LeaderboardScore?
+  leaderboardStreak  LeaderboardStreak?
+
+  @@index([username])
+  @@index([email])
+  @@map("users")
+}
+
+model Question {
+  id                String   @id @default(uuid())
+  difficulty        Int      @db.Integer
+  prompt            String   @db.Text
+  choices           Json     @db.JsonB
+  correctAnswerHash String   @map("correct_answer_hash") @db.VarChar(64)
+  tags              String[]
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  answerLogs AnswerLog[]
+
+  @@index([difficulty])
+  @@map("questions")
+}
+
+model UserState {
+  userId            String    @id @map("user_id")
+  currentDifficulty Int       @default(5) @map("current_difficulty") @db.Integer
+  momentum          Decimal   @default(0) @db.Decimal(5, 2)
+  streak            Int       @default(0) @db.Integer
+  maxStreak         Int       @default(0) @map("max_streak") @db.Integer
+  totalScore        BigInt    @default(0) @map("total_score")
+  totalQuestions    Int       @default(0) @map("total_questions") @db.Integer
+  correctAnswers    Int       @default(0) @map("correct_answers") @db.Integer
+  lastQuestionId    String?   @map("last_question_id")
+  lastAnswerAt      DateTime? @map("last_answer_at")
+  stateVersion      Int       @default(1) @map("state_version") @db.Integer
+  sessionId         String?   @map("session_id")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([updatedAt])
+  @@map("user_state")
+}
+
+model AnswerLog {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  questionId       String   @map("question_id")
+  sessionId        String   @map("session_id")
+  difficulty       Int      @db.Integer
+  answerHash       String   @map("answer_hash") @db.VarChar(64)
+  isCorrect        Boolean  @map("is_correct")
+  scoreDelta       Int      @map("score_delta") @db.Integer
+  streakAtAnswer   Int      @map("streak_at_answer") @db.Integer
+  momentumAtAnswer Decimal? @map("momentum_at_answer") @db.Decimal(5, 2)
+  answeredAt       DateTime @default(now()) @map("answered_at")
+  idempotencyKey   String   @unique @map("idempotency_key") @db.VarChar(255)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id])
+
+  @@index([userId, answeredAt(sort: Desc)])
+  @@index([sessionId])
+  @@index([idempotencyKey])
+  @@map("answer_log")
+}
+
+model LeaderboardScore {
+  userId     String   @id @map("user_id")
+  username   String   @db.VarChar(50)
+  totalScore BigInt   @map("total_score")
+  rank       Int?     @db.Integer
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([totalScore(sort: Desc), updatedAt])
+  @@map("leaderboard_score")
+}
+
+model LeaderboardStreak {
+  userId        String   @id @map("user_id")
+  username      String   @db.VarChar(50)
+  maxStreak     Int      @map("max_streak") @db.Integer
+  currentStreak Int      @map("current_streak") @db.Integer
+  rank          Int?     @db.Integer
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([maxStreak(sort: Desc), currentStreak(sort: Desc), updatedAt])
+  @@map("leaderboard_streak")
+}
