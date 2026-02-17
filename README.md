@@ -2,6 +2,8 @@
 
 BrainBolt is a full-stack adaptive quiz app built with Next.js App Router, Prisma, PostgreSQL, and Redis.
 
+## 🎥 Project Demo - PROJECT_DEMO.txt.
+
 ## Highlights
 
 - Adaptive difficulty engine with momentum + hysteresis
