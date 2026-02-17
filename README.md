@@ -39,7 +39,7 @@ BrainBolt is a full-stack adaptive quiz app built with Next.js App Router, Prism
 
 ```bash
 cp .env.example .env
-docker compose up --build
+docker compose up --build -d
 ```
 
 App: `http://localhost:3000`
