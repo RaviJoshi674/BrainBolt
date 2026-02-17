@@ -7,6 +7,7 @@ BrainBolt is a full-stack adaptive quiz app built with Next.js App Router, Prism
 - Adaptive difficulty engine with momentum + hysteresis
 - Difficulty range **0 to 10**
 - Difficulty resets to **0** on wrong answer
+- Difficulty upgared after every 3 correct answers.
 - Streak and score tracking with leaderboard ranks
 - Idempotent answer submissions using `answerIdempotencyKey`
 - JWT-based auth (`register`, `login`)
